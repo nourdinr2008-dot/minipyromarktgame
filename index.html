@@ -1,159 +1,429 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pyromarkt Mini App</title>
-  <style>
-    /* General Reset */
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PYROMARKT PORTAL</title>
+<link rel="icon" href="logo.png">
+<style>
+  /* =======================
+     BRAND CONFIG
+     ======================= */
+  :root {
+    --gold: #D4AF37;
+    --orange: #FF6A00;
+    --amber: #FFB000;
+    --bg-dark: #0B0C12;
+    --white: #EDEDED;
+    --gray: #B8B8B8;
+  }
 
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #111, #333);
-      color: #fff;
-      overflow: hidden;
-    }
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-dark);
+    color: var(--white);
+    overflow: hidden;
+  }
 
-    /* Splash Screen */
-    #splash {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: #111;
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column;
-    }
+  #splash {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, #0B0C12 40%, #000);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 99;
+  }
 
-    #splash img {
-      width: 200px;
-      margin-bottom: 20px;
-    }
+  #splash img {
+    width: 180px;
+    height: 180px;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 0 20px var(--gold));
+  }
 
-    #splash button {
-      background: #e25822;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    
-    #splash button:hover {
-      background: #f06f36;
-    }
+  #enterBtn {
+    background: linear-gradient(90deg, var(--orange), var(--gold));
+    border: none;
+    color: var(--white);
+    padding: 12px 30px;
+    font-size: 1.1em;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--gold);
+  }
+  #enterBtn:hover {
+    transform: scale(1.05);
+  }
 
-    /* Game Info HUD */
-    #hud {
-      display: none;
-      position: absolute;
-      top: 0; left: 0; width: 100%;
-      padding: 10px;
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(0, 0, 0, 0.6);
-      color: #fff;
-      font-size: 14px;
-      z-index: 10;
-    }
+  #gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #070812;
+  }
 
-    /* Left side of HUD */
-    #hud .stats span { margin-right: 20px; }
+  #hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(20,20,20,0.4);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-size: 0.9em;
+    color: var(--white);
+  }
 
-    /* Small watermark logo */
-    #hud img.watermark {
-      width: 50px;
-      opacity: 0.6;
-    }
-  </style>
+  #hud span {
+    display: inline-block;
+    margin-right: 10px;
+    color: var(--gold);
+  }
+
+  #fireBtn {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    background: linear-gradient(90deg, var(--gold), var(--orange));
+    border: none;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    color: var(--bg-dark);
+    font-weight: bold;
+    font-size: 1em;
+    text-shadow: 0 0 5px var(--white);
+  }
+
+  #storePanel {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    max-height: 50%;
+    background: rgba(10,10,10,0.8);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--gold);
+    box-shadow: 0 -3px 15px rgba(212,175,55,0.4);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    transform: translateY(100%);
+    transition: transform 0.5s ease;
+    overflow-y: auto;
+  }
+
+  #storePanel.open {
+    transform: translateY(0);
+  }
+
+  #storeHeader {
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    color: var(--gold);
+  }
+
+  .productCard {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin: 10px 15px;
+    padding: 10px 15px;
+    border: 1px solid rgba(212,175,55,0.2);
+  }
+
+  .productCard h3 {
+    margin: 4px 0;
+    color: var(--amber);
+  }
+
+  .productCard p {
+    color: var(--gray);
+    font-size: 0.85em;
+    margin: 4px 0 8px;
+  }
+
+  .buyBtn {
+    background: linear-gradient(90deg, var(--gold), var(--orange));
+    border: none;
+    padding: 7px 14px;
+    border-radius: 20px;
+    color: var(--bg-dark);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  #storeToggle {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: linear-gradient(90deg, var(--gold), var(--amber));
+    border: none;
+    border-radius: 25px;
+    padding: 10px 16px;
+    color: var(--bg-dark);
+    font-weight: bold;
+  }
+
+  #watermark {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 50px;
+    opacity: 0.7;
+  }
+
+  #messageBox {
+    position: absolute;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,20,20,0.7);
+    color: var(--white);
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 0.9em;
+    display: none;
+  }
+
+  #messageBox.success { border: 1px solid var(--gold); }
+  #messageBox.error { border: 1px solid red; }
+</style>
 </head>
 <body>
 
-  <!-- Splash Screen -->
-  <div id="splash">
-    <img src="logo.png" alt="Pyromarkt Logo">
-    <button id="startButton">ENTER PORTAL</button>
-  </div>
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <img src="logo.png" alt="PYROMARKT Logo">
+  <button id="enterBtn">ENTER PORTAL</button>
+</div>
 
-  <!-- HUD -->
-  <div id="hud">
-    <div class="stats">
-      <span>Coins: <b id="coins">0</b></span>
-      <span>Items: <b id="items">0</b></span>
-      <span>Score: <b id="score">0</b></span>
-      <span>🔓 Unlock Progress: <b id="unlock-progress">0%</b></span>
-    </div>
-    <img src="logo.png" alt="Watermark Logo" class="watermark">
-  </div>
+<!-- GAME CANVAS -->
+<canvas id="gameCanvas" width="100%" height="100%"></canvas>
 
-  <script>
-    /* BOT INTEGRATION NOTES:
-     * You will need to implement an HTTP endpoint in your existing bot:
-     *  - POST https://YOUR_BOT_BACKEND_DOMAIN/api/createInvoice
-     *    Request: { productId: "pyromarkt_premium" }
-     *    Response: { invoice_link: "https://t.me/$invoice?..." }
-     * 
-     * To integrate:
-     * - Set Menu Button URL in your bot to the GitHub Pages link for this Mini App.
-     * - Handle `start=premium_success` and `start=buy_premium` for deep links.
-     */
+<!-- HUD -->
+<div id="hud">
+  <span>💰 Coins: <b id="coins">0</b></span>
+  <span>🔥 Score: <b id="score">0</b></span>
+  <span>🎆 Inv: <b id="inventory">0</b></span>
+  <div style="margin-top:4px;">Unlock: <progress id="progress" value="0" max="100"></progress></div>
+</div>
 
-    /* Config: Easy to update */
-    const PREMIUM_PRODUCT_ID = "pyromarkt_premium";
-    const STARS_PRICE = 500; // Telegram Stars price for "Premium Access"
-    const BOT_USERNAME = "@YOUR_BOT_USERNAME"; // Replace with your bot username in Telegram
+<img id="watermark" src="logo.png" alt="logo">
 
-    // Game variables
-    let coins = 0;
-    let items = 0;
-    let score = 0;
-    let unlockProgress = 0;
+<button id="fireBtn">IGNITE</button>
+<button id="storeToggle">STORE</button>
 
-    /* Initialize Game */
-    const startButton = document.getElementById("startButton");
-    const splash = document.getElementById("splash");
-    const hud = document.getElementById("hud");
+<!-- STORE PANEL -->
+<div id="storePanel">
+  <div id="storeHeader">🔥 PYROMARKT PREMIUM STORE 🔥</div>
+  <div id="products"></div>
+</div>
 
-    startButton.addEventListener("click", () => {
-      splash.style.display = "none"; // Hide splash screen
-      hud.style.display = "flex";  // Show HUD
-      initGame();
+<div id="messageBox"></div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+/* ====================
+   CONFIG SECTION
+   ==================== */
+const CONFIG = {
+  BOT_USERNAME: "<BOT_USERNAME>",
+  INVOICE_ENDPOINT_URL: "<INVOICE_ENDPOINT_URL>",
+  BRAND_COLORS: {
+    gold: "#D4AF37",
+    orange: "#FF6A00",
+    amber: "#FFB000"
+  },
+  PRODUCTS: [
+    { productId: "premium_access", name: "PYROMARKT PREMIUM ACCESS", description: "Exclusive paid group access", starsPrice: 500 },
+    { productId: "promo_24h", name: "PROMOTION 24H", description: "Boost visibility for 24 hours", starsPrice: 250 },
+    { productId: "promo_7d", name: "PROMOTION 7 DAYS", description: "Boost visibility for 7 days", starsPrice: 800 },
+    { productId: "trusted_status", name: "TRUSTED / VERIFIED STATUS", description: "Show your verified mark", starsPrice: 350 },
+    { productId: "pinned_feature", name: "PINNED FEATURE", description: "Feature your listing at the top", starsPrice: 1000 }
+  ]
+};
+
+/* ====================
+   SPLASH → GAME INIT
+   ==================== */
+const splash = document.getElementById("splash");
+const enterBtn = document.getElementById("enterBtn");
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const fireBtn = document.getElementById("fireBtn");
+const messageBox = document.getElementById("messageBox");
+
+let coins = 0, score = 0, inventory = [];
+let player = {x:150, y:150, speed:3};
+let keys = {};
+let collectibles = [];
+
+/* Resize Canvas */
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+/* Simple fake top-down map */
+function drawMap(){
+  ctx.fillStyle = "#0A0A10";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#202030";
+  for(let i=0; i<canvas.width; i+=120){
+    ctx.fillRect(i,0,3,canvas.height);
+  }
+  for(let j=0; j<canvas.height; j+=120){
+    ctx.fillRect(0,j,canvas.width,3);
+  }
+  ctx.fillStyle = "#222";
+  ctx.fillText("MARKTHAL", 100,100);
+  ctx.fillText("ERASMUSBRUG", 400,200);
+  ctx.fillText("KOP VAN ZUID", 700,400);
+}
+
+/* Collectibles */
+function spawnCollectibles(){
+  const types = ["Rocket","Cake","Firecracker","Single Shot"];
+  collectibles = Array.from({length:6},()=>{
+    return {x:Math.random()*canvas.width, y:Math.random()*canvas.height, type: types[Math.floor(Math.random()*types.length)]};
+  });
+}
+
+function drawCollectibles(){
+  collectibles.forEach(c=>{
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 8, 0, Math.PI*2);
+    ctx.fillStyle = CONFIG.BRAND_COLORS.orange;
+    ctx.fill();
+  });
+}
+
+function drawPlayer(){
+  ctx.fillStyle = CONFIG.BRAND_COLORS.gold;
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, 10, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function update(){
+  if(keys["ArrowUp"]||keys["w"]) player.y -= player.speed;
+  if(keys["ArrowDown"]||keys["s"]) player.y += player.speed;
+  if(keys["ArrowLeft"]||keys["a"]) player.x -= player.speed;
+  if(keys["ArrowRight"]||keys["d"]) player.x += player.speed;
+
+  collectibles.forEach((c,i)=>{
+    let dx = player.x - c.x, dy = player.y - c.y;
+    if(Math.sqrt(dx*dx+dy*dy) < 14){
+      inventory.push(c.type);
+      collectibles.splice(i,1);
+      coins += 5; score += 10;
+      updateHUD();
+    }
+  });
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawMap();
+  drawCollectibles();
+  drawPlayer();
+  requestAnimationFrame(draw);
+  update();
+}
+
+function updateHUD(){
+  document.getElementById("coins").textContent = coins;
+  document.getElementById("score").textContent = score;
+  document.getElementById("inventory").textContent = inventory.length;
+  document.getElementById("progress").value = Math.min(100, inventory.length*10);
+}
+
+/* Fireworks simulation (simple) */
+function ignite(){
+  if(inventory.length===0){ showMessage("No fireworks collected!", "error"); return; }
+  const item = inventory.pop();
+  showMessage("Igniting " + item + " 🎆", "success");
+  score += 20;
+  updateHUD();
+  // visual burst
+  ctx.fillStyle = CONFIG.BRAND_COLORS.gold;
+  for(let i=0;i<50;i++){
+    ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 2, 2);
+  }
+}
+
+/* Message helper */
+function showMessage(txt, type){
+  messageBox.textContent = txt;
+  messageBox.className = type === "error" ? "error" : "success";
+  messageBox.style.display = "block";
+  setTimeout(()=> messageBox.style.display="none", 2000);
+}
+
+/* KEYS */
+window.addEventListener("keydown", e=> keys[e.key]=true);
+window.addEventListener("keyup", e=> keys[e.key]=false);
+
+fireBtn.onclick=ignite;
+enterBtn.onclick=()=>{
+  splash.style.display="none";
+  spawnCollectibles();
+  draw();
+};
+
+/* STORE PANEL */
+const storePanel = document.getElementById("storePanel");
+const storeToggle = document.getElementById("storeToggle");
+const productsDiv = document.getElementById("products");
+
+storeToggle.onclick = ()=> storePanel.classList.toggle("open");
+
+/* Load products */
+CONFIG.PRODUCTS.forEach(p=>{
+  const div=document.createElement("div");
+  div.className="productCard";
+  div.innerHTML=`<h3>${p.name}</h3>
+<p>${p.description}</p>
+<button class="buyBtn" data-id="${p.productId}">Buy for ${p.starsPrice}⭐</button>`;
+  productsDiv.appendChild(div);
+});
+
+/* Handle buy click */
+productsDiv.addEventListener("click", async (e)=>{
+  if(!e.target.classList.contains("buyBtn")) return;
+  const productId = e.target.dataset.id;
+  const product = CONFIG.PRODUCTS.find(p=>p.productId===productId);
+  try{
+    const res = await fetch(CONFIG.INVOICE_ENDPOINT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({productId, stars: product.starsPrice})
     });
-
-    function initGame() {
-      // Setup initial game loop (e.g., key detection, map rendering)
-      console.log("Game Starting...");
+    if(!res.ok) throw new Error("Invoice endpoint error");
+    const data = await res.json();
+    if(data.invoice_link){
+      Telegram.WebApp.openInvoice(data.invoice_link, (status)=>{
+        if(status==="paid"){
+          showMessage("Payment successful ✅","success");
+          const link = document.createElement("a");
+          link.href=`https://t.me/${CONFIG.BOT_USERNAME}?start=paid_${productId}`;
+          link.textContent="Return to Bot";
+          link.style.display="block";
+          messageBox.appendChild(link);
+        }
+      });
+    } else {
+      throw new Error("No link in response");
     }
-
-    // Simulate a "Buy Premium" button click workflow for stars invoice creation
-    function buyPremiumAccess() {
-      // Placeholder HTTP request to your bot to generate invoice link
-      fetch("https://YOUR_BOT_BACKEND_DOMAIN/api/createInvoice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: PREMIUM_PRODUCT_ID })
-      })
-        .then(response => response.json())
-        .then(data => {
-          if (data.invoice_link) {
-            Telegram.WebApp.openInvoice(data.invoice_link);
-          } else {
-            alert("Invoice creation failed. Please contact support.");
-          }
-        })
-        .catch(err => {
-          console.error("Error creating invoice:", err);
-          alert("Failed to request invoice. Try again later or contact support.");
-        });
-    }
-
-    // Fallback Deep Link for Manual Payment
-    function manualPaymentFallback() {
-      const manualLink = `https://t.me/${BOT_USERNAME}?start=buy_premium`;
-      window.open(manualLink, "_blank"); // Open fallback in Telegram
-    }
-  </script>
+  } catch(err){
+    console.error(err);
+    showMessage("Open bot to pay manually","error");
+    window.open(`https://t.me/${CONFIG.BOT_USERNAME}?start=buy_${productId}`,"_blank");
+  }
+});
+</script>
 </body>
 </html>
