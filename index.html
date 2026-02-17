@@ -1,87 +1,375 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="nl">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pyromarkt Betaald</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            color: white; min-height: 100vh; padding: 20px;
-        }
-        .container { max-width: 400px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .logo { font-size: 28px; font-weight: bold; background: linear-gradient(45deg, #ff6b6b, #feca57); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { color: #b8b8b8; margin-top: 5px; font-size: 14px; }
-        .step { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
-        .step.active { border: 2px solid #feca57; }
-        .step-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; }
-        .step-number { background: #feca57; color: #1a1a2e; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
-        .upload-area { border: 2px dashed #feca57; border-radius: 10px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s; }
-        .upload-area:hover { background: rgba(254,202,87,0.1); }
-        .upload-area.dragover { background: rgba(254,202,87,0.2); border-color: #ff6b6b; }
-        #preview { max-width: 100%; max-height: 200px; border-radius: 10px; margin-top: 10px; display: none; }
-        .btn { background: linear-gradient(45deg, #feca57, #ff9ff3); border: none; border-radius: 25px; padding: 15px 30px; font-size: 16px; font-weight: bold; color: #1a1a2e; cursor: pointer; width: 100%; margin-top: 15px; transition: all 0.3s; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn.success { background: #00b894; }
-        .payment-info { background: rgba(0,184,148,0.2); border-radius: 10px; padding: 15px; margin-top: 10px; font-family: monospace; font-size: 12px; }
-        .group-link { background: #00b894; color: white; text-decoration: none; display: inline-block; padding: 15px; border-radius: 10px; width: 100%; text-align: center; font-weight: bold; margin-top: 15px; }
-        #status { padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
-        .status-pending { background: rgba(255,193,7,0.2); color: #feca57; }
-        .status-approved { background: rgba(40,167,69,0.2); color: #00b894; }
-        .status-rejected { background: rgba(220,53,69,0.2); color: #dc3545; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pyromarkt Portaal</title>
+  <meta name="theme-color" content="#0a0a0a" />
+  <style>
+    :root{
+      --bg:#090909;
+      --card:#111111;
+      --card2:#0f0f0f;
+      --text:#f6f6f6;
+      --muted:#b8b8b8;
+      --line:#1f1f1f;
+
+      --gold:#d7b35a;
+      --gold2:#b88a2a;
+
+      --r:18px;
+      --shadow: 0 12px 40px rgba(0,0,0,.55);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      font: 15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+
+      /* Luxe zwarte basis + gouden gloed */
+      background:
+        radial-gradient(900px 520px at 15% -10%, rgba(215,179,90,.20), transparent 55%),
+        radial-gradient(800px 480px at 110% 20%, rgba(215,179,90,.14), transparent 55%),
+        radial-gradient(720px 420px at 40% 120%, rgba(215,179,90,.10), transparent 55%),
+        linear-gradient(180deg, #050505, var(--bg));
+      overflow-x:hidden;
+    }
+
+    /* Subtiele vuurwerk sparkles */
+    .sparkles::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.35;
+      background-image:
+        radial-gradient(circle at 20% 18%, rgba(215,179,90,.65) 0 1px, transparent 2px),
+        radial-gradient(circle at 62% 30%, rgba(215,179,90,.45) 0 1px, transparent 2px),
+        radial-gradient(circle at 78% 12%, rgba(215,179,90,.55) 0 1px, transparent 2px),
+        radial-gradient(circle at 34% 72%, rgba(215,179,90,.40) 0 1px, transparent 2px),
+        radial-gradient(circle at 85% 68%, rgba(215,179,90,.35) 0 1px, transparent 2px),
+        radial-gradient(circle at 12% 86%, rgba(215,179,90,.40) 0 1px, transparent 2px);
+      filter: blur(.2px);
+      animation: twinkle 4.5s ease-in-out infinite;
+    }
+    @keyframes twinkle{
+      0%,100%{opacity:.25}
+      50%{opacity:.45}
+    }
+
+    .wrap{max-width:860px; margin:0 auto; padding:18px 14px 32px}
+
+    /* Header card */
+    .top{
+      position:relative;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      padding:16px;
+      border:1px solid rgba(215,179,90,.18);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      border-radius:var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    /* Phoenix watermark (inline SVG) */
+    .top::after{
+      content:"";
+      position:absolute;
+      right:-70px;
+      top:-40px;
+      width:320px;
+      height:320px;
+      opacity:.12;
+      background-repeat:no-repeat;
+      background-size:contain;
+      filter: drop-shadow(0 0 22px rgba(215,179,90,.25));
+      background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'>\
+<path fill='%23d7b35a' d='M344 62c-34 25-53 61-58 96-3 23 2 47 15 71-24-6-49-22-66-42-15 43-4 87 28 119-39-6-76-33-94-64-20 67 12 130 72 162-52 8-109-14-139-54 6 104 98 170 202 170 122 0 212-86 212-197 0-79-45-146-113-170 9-29 2-60-19-91-8 24-23 45-40 63z'/>\
+<path fill='%23b88a2a' d='M286 292c-28 18-50 44-62 75 23-8 48-12 74-10-10 18-14 39-11 59 22-19 39-44 47-72 10 18 16 39 17 60 20-19 34-45 38-73 20 22 34 49 39 79 16-20 26-45 26-73 0-58-38-108-92-125-26 4-50 13-76 30z'/>\
+</svg>");
+    }
+
+    .logo{
+      width:56px; height:56px;
+      border-radius:16px;
+      background: radial-gradient(circle at 30% 25%, rgba(215,179,90,.18), rgba(0,0,0,.55));
+      border:1px solid rgba(215,179,90,.35);
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+    .logo img{width:100%; height:100%; object-fit:cover}
+    .brand{flex:1; min-width:0}
+    .brand h1{margin:0; font-size:18px; letter-spacing:.4px}
+    .brand p{margin:4px 0 0; color:var(--muted); font-size:13px}
+
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:7px 10px; border-radius:999px;
+      border:1px solid rgba(215,179,90,.26);
+      color:#fff;
+      background:rgba(215,179,90,.08);
+      font-size:12px;
+      flex:0 0 auto;
+      white-space:nowrap;
+    }
+
+    .grid{display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px}
+    @media(min-width:820px){ .grid{grid-template-columns:1.15fr .85fr} }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--r);
+      padding:14px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2{margin:0 0 10px; font-size:14px; letter-spacing:.25px}
+
+    .btns{display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px}
+
+    .btn{
+      border:1px solid rgba(215,179,90,.24);
+      background:
+        radial-gradient(260px 120px at 20% 20%, rgba(215,179,90,.18), transparent 60%),
+        linear-gradient(180deg, rgba(215,179,90,.12), rgba(215,179,90,.06));
+      color:#fff;
+      padding:12px 12px;
+      border-radius:16px;
+      cursor:pointer;
+      text-align:left;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+    }
+    .btn:hover{
+      border-color: rgba(215,179,90,.40);
+      background:
+        radial-gradient(260px 120px at 20% 20%, rgba(215,179,90,.22), transparent 60%),
+        linear-gradient(180deg, rgba(215,179,90,.14), rgba(215,179,90,.07));
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn small{display:block; color:var(--muted); margin-top:2px}
+
+    .muted{color:var(--muted)}
+    .divider{height:1px; background:rgba(255,255,255,.06); margin:12px 0}
+
+    label{display:block; margin:10px 0 6px; color:var(--muted); font-size:12px}
+    input, textarea, select{
+      width:100%;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.45);
+      color:#fff;
+      outline:none;
+    }
+    textarea{min-height:92px; resize:vertical}
+
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .hidden{display:none}
+    .toast{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.35);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .tag{color:var(--gold)}
+  </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🎆 PYROMARKT</div>
-            <div class="subtitle">Exclusief • Veilig • High Level</div>
-        </div>
 
-        <div id="step1" class="step active">
-            <div class="step-title">
-                <div class="step-number">1</div>
-                Verificatie (verplicht)
-            </div>
-            <div class="upload-area" id="uploadArea">
-                📸 Upload foto/video vuurwerk<br>
-                <small>Met jouw naam + datum zichtbaar</small>
-            </div>
-            <img id="preview" />
-            <div id="status"></div>
-            <button class="btn" id="submitVerification" disabled>Verificatie versturen</button>
-        </div>
+<body class="sparkles">
+  <div class="wrap">
+    <div class="top">
+      <div class="logo" id="logoBox">
+        <!-- Zet hier je logo URL (optioneel). Laat leeg voor PM fallback -->
+        <img id="logoImg" alt="Pyromarkt" src=""
+             onerror="this.style.display='none'; document.getElementById('logoBox').textContent='PM';" />
+      </div>
 
-        <div id="step2" class="step" style="display:none;">
-            <div class="step-title">
-                <div class="step-number">2</div>
-                Betaling €25
-            </div>
-            <button class="btn" onclick="showPaymentInfo()">Betaal nu met Stars / iDEAL</button>
-            <div class="payment-info" id="altPayment" style="display:none;">
-                <strong>Of alternatief:</strong><br>
-                💳 Paysafecard via beltegoed.nl<br>
-                💰 ETH: 0x97D5c669F018DcCA8130606A5cC7FEf4b2627315
-            </div>
-            <button class="btn" id="paymentDone" style="display:none;">Betaling voltooid</button>
-        </div>
+      <div class="brand">
+        <h1>PYROMARKT <span class="tag">PORTAAL</span></h1>
+        <p>Zwart • Goud • High level netwerk</p>
+      </div>
 
-        <div id="step3" class="step" style="display:none;">
-            <div class="step-title">
-                <div class="step-number">3</div>
-                ✅ Toegang verleend
-            </div>
-            <a href="#" class="group-link" id="groupLink" target="_blank">Join Pyromarkt Betaald groep</a>
-            <p style="text-align:center; color:#b8b8b8; font-size:12px;">
-                Meerdere privé groepen inbegrepen
-            </p>
-        </div>
+      <span class="pill" id="tgState">Telegram: detecteren…</span>
     </div>
 
-    <script src="app.js"></script>
+    <div class="grid">
+      <div class="card">
+        <h2>Snelle acties</h2>
+        <div class="btns">
+          <button class="btn" onclick="show('apply')">
+            <div>✨ Toegang aanvragen<small>Start je aanvraag in 1 minuut</small></div><div>›</div>
+          </button>
+
+          <button class="btn" onclick="show('benefits')">
+            <div>💎 Voordelen<small>Lijsten • exclusieve leveranciers • structuur</small></div><div>›</div>
+          </button>
+
+          <button class="btn" onclick="show('faq')">
+            <div>ℹ️ Veelgestelde vragen<small>Snel duidelijk, minder DM’s</small></div><div>›</div>
+          </button>
+
+          <button class="btn" onclick="show('trusted')">
+            <div>⭐ Trusted / Promo<small>Status aanvragen of productpromotie</small></div><div>›</div>
+          </button>
+        </div>
+
+        <div class="toast">
+          Tip: Koppel dit als Telegram Web App (Menu Button) zodat iedereen het portaal in 1 klik opent.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Over Pyromarkt</h2>
+        <p class="muted">
+          Besloten community met selectie aan de poort. Minder ruis. Meer overzicht.
+        </p>
+        <div class="divider"></div>
+        <p class="muted">
+          Contact: <b>@pyromarktgroup</b> / <b>@pyromarktgroup2</b>
+        </p>
+      </div>
+    </div>
+
+    <!-- PANEL: APPLY -->
+    <div class="card hidden" id="panel-apply">
+      <h2>✨ Toegang aanvragen</h2>
+      <p class="muted">Vul dit in. Je aanvraag wordt handmatig bekeken.</p>
+
+      <label>Telegram gebruikersnaam</label>
+      <input id="tgUser" placeholder="@jouwnaam" />
+
+      <label>Land</label>
+      <select id="country">
+        <option value="">Kies…</option>
+        <option>NL</option><option>BE</option><option>DE</option><option>FR</option><option>ES</option><option>IT</option><option>Overig (EU)</option>
+      </select>
+
+      <label>Korte motivatie</label>
+      <textarea id="msg" placeholder="Wat zoek je in het netwerk?"></textarea>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn" style="flex:1" onclick="sendApplication()">
+          <div>📨 Verstuur aanvraag<small>Opent een Telegram bericht</small></div><div>›</div>
+        </button>
+        <button class="btn" style="flex:1" onclick="hideAll()">
+          <div>↩︎ Terug<small>Sluit dit scherm</small></div><div>›</div>
+        </button>
+      </div>
+
+      <div class="toast">
+        Na versturen krijg je verdere instructies via Telegram.
+      </div>
+    </div>
+
+    <!-- PANEL: BENEFITS -->
+    <div class="card hidden" id="panel-benefits">
+      <h2>💎 Voordelen</h2>
+      <ul class="muted" style="margin:0; padding-left:18px">
+        <li>Geverifieerde instroom (kwaliteit boven aantallen)</li>
+        <li>Lijsten & directe lijnen in het netwerk</li>
+        <li>Exclusieve connecties en strak overzicht</li>
+        <li>Trusted-status & promotieopties</li>
+      </ul>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" style="flex:1" onclick="show('apply')">
+          <div>✨ Toegang aanvragen<small>Start direct</small></div><div>›</div>
+        </button>
+        <button class="btn" style="flex:1" onclick="hideAll()">
+          <div>↩︎ Terug</div><div>›</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL: FAQ -->
+    <div class="card hidden" id="panel-faq">
+      <h2>ℹ️ Veelgestelde vragen</h2>
+
+      <p class="muted"><b>Hoe meld ik me aan?</b><br/>Via “Toegang aanvragen” in dit portaal.</p>
+      <p class="muted"><b>Wordt iedereen toegelaten?</b><br/>Nee, selectie om het niveau hoog te houden.</p>
+      <p class="muted"><b>Is dit openbaar?</b><br/>Nee, dit is besloten en bedoeld voor serieuze deelname.</p>
+
+      <button class="btn" onclick="hideAll()"><div>↩︎ Terug</div><div>›</div></button>
+    </div>
+
+    <!-- PANEL: TRUSTED -->
+    <div class="card hidden" id="panel-trusted">
+      <h2>⭐ Trusted / Promo</h2>
+      <p class="muted">
+        Vraag Trusted aan of dien een promotie in. Wij checken aanvragen om kwaliteit te bewaken.
+      </p>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn" style="flex:1"
+          onclick="openTelegram('@pyromarktgroup','Trusted aanvraag:\\nUser: @username\\nKorte uitleg: ...')">
+          <div>⭐ Trusted aanvragen<small>Stuur je aanvraag</small></div><div>›</div>
+        </button>
+
+        <button class="btn" style="flex:1"
+          onclick="openTelegram('@pyromarktgroup','Promo aanvraag:\\nProduct: ...\\nDoelgroep: ...\\nKorte tekst: ...')">
+          <div>🚀 Promo aanvragen<small>Wij promoten na beoordeling</small></div><div>›</div>
+        </button>
+      </div>
+
+      <button class="btn" onclick="hideAll()" style="margin-top:10px"><div>↩︎ Terug</div><div>›</div></button>
+    </div>
+
+  </div>
+
+  <script>
+    function show(id){
+      hideAll(false);
+      const el = document.getElementById('panel-'+id);
+      el.classList.remove('hidden');
+      window.scrollTo({top: el.offsetTop - 10, behavior:'smooth'});
+    }
+    function hideAll(scrollTop=true){
+      document.querySelectorAll('[id^="panel-"]').forEach(x=>x.classList.add('hidden'));
+      if(scrollTop) window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function openTelegram(to, text){
+      const url = `https://t.me/${to.replace('@','')}?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
+    function sendApplication(){
+      const u = document.getElementById('tgUser').value.trim() || '(niet ingevuld)';
+      const c = document.getElementById('country').value || '(geen)';
+      const m = document.getElementById('msg').value.trim() || '(geen bericht)';
+      const text = `Aanvraag Pyromarkt:\\nUser: ${u}\\nLand: ${c}\\nMotivatie: ${m}`;
+      openTelegram('@pyromarktgroup', text);
+    }
+
+    (function(){
+      const pill = document.getElementById('tgState');
+      if (window.Telegram && Telegram.WebApp){
+        pill.textContent = 'Telegram: actief';
+        try{
+          Telegram.WebApp.ready();
+          const user = Telegram.WebApp.initDataUnsafe?.user;
+          if(user){
+            const uname = user.username ? '@'+user.username : (user.first_name || 'Gebruiker');
+            document.getElementById('tgUser').value = uname;
+          }
+        }catch(e){}
+      } else {
+        pill.textContent = 'Telegram: browser';
+      }
+    })();
+  </script>
 </body>
 </html>
+
